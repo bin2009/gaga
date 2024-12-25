@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload to DigitalOcean Spaces</title>
+    <style>
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h2>Upload File to DigitalOcean Spaces</h2>
+    <form id="uploadForm">
+        <input type="file" name="upload" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="status"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const status = document.getElementById('status');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            status.innerHTML = 'Uploading...';
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.innerHTML = `
+                        <div class="success">
+                            Upload successful!<br>
+                            URL: <a href="${result.file.url}" target="_blank">${result.file.url}</a><br>
+                            Size: ${(result.file.size / 1024).toFixed(2)}KB<br>
+                            Type: ${result.file.mimetype}
+                        </div>
+                    `;
+                } else {
+                    status.innerHTML = `<div class="error">Upload failed: ${result.error}</div>`;
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>
